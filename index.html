@@ -1,0 +1,494 @@
+<!--
+MIT License
+
+Copyright (c) 2025 潘少岩
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>三菱镭射程式防呆系统</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100dvh; overflow: hidden; font-size: calc(14px + 0.2vw); }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #1c1c1e;
+      background: linear-gradient(135deg,#ff5f7e 0%,#ffba00 30%,#34c759 65%,#3a5bdb 100%) fixed;
+      transition: color .3s;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      transform: scale(1.5);
+      filter: blur(90px);
+      animation: bg 16s linear infinite alternate;
+      background:
+        radial-gradient(circle at 20% 20%,#ff5f7e 0%,transparent 60%),
+        radial-gradient(circle at 80% 15%,#ffba00 0%,transparent 60%),
+        radial-gradient(circle at 50% 10%,#34c759 0%,transparent 60%),
+        radial-gradient(circle at 10% 80%,#3a5bdb 0%,transparent 60%),
+        radial-gradient(circle at 90% 75%,#ff3b30 0%,transparent 60%),
+        radial-gradient(circle at 50% 90%,#af52de 0%,transparent 60%),
+        radial-gradient(circle at 30% 50%,#ffc0cb 0%,transparent 60%),
+        radial-gradient(circle at 70% 50%,#00ffff 0%,transparent 60%),
+        radial-gradient(circle at 15% 40%,#ff4500 0%,transparent 60%),
+        radial-gradient(circle at 85% 25%,#8a2be2 0%,transparent 60%),
+        radial-gradient(circle at 40% 70%,#deb887 0%,transparent 60%),
+        radial-gradient(circle at 60% 30%,#7fff00 0%,transparent 60%),
+        radial-gradient(circle at 25% 85%,#ff1493 0%,transparent 60%),
+        radial-gradient(circle at 75% 85%,#00fa9a 0%,transparent 60%),
+        radial-gradient(circle at 35% 30%,#ffd700 0%,transparent 60%),
+        radial-gradient(circle at 65% 65%,#87cefa 0%,transparent 60%);
+    }
+    @keyframes bg {
+      0% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(-25%,8%) scale(1.05); }
+      66% { transform: translate(-50%,-6%) scale(1); }
+      100% { transform: translate(-25%,8%) scale(1.05); }
+    }
+
+    .panel {
+      background: rgba(255,255,255,.25);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.12);
+      overflow: hidden;
+    }
+
+    .panel button,
+    .panel input:not([type=file]),
+    .panel select {
+      background: rgba(255,255,255,.25);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: .25rem;
+      transition: background .2s;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .panel input[type=file] {
+      background: rgba(255,255,255,.25);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: .25rem;
+      padding: .5rem .75rem;
+      cursor: pointer;
+      color: #000;
+      transition: background .2s;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .panel input[type=file]::file-selector-button,
+    .panel input[type=file]::-webkit-file-upload-button {
+      font-weight: 700;
+      font-size: 1rem;
+      padding: .5rem .75rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .panel input[type=number] {
+      font-size: 1rem;
+      padding: .625rem .75rem;
+    }
+
+    #run:hover,
+    #clearFile:hover,
+    .panel input[type=file]:hover { background: rgba(14,165,233,.08); }
+
+    #run:active,
+    #clearFile:active,
+    .panel input[type=file]:active { background: rgba(255,255,255,.25); }
+
+    .panel pre#msg {
+      background: rgba(255,255,255,.25);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: .25rem;
+      font-weight: 700;
+      color: #000;
+      padding: .75rem;
+    }
+
+    .seg-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: .5rem .75rem;
+      color: #000;
+      font-weight: 700;
+      font-size: .8125rem;
+      line-height: 1rem;
+      transition: .15s;
+    }
+    .seg-btn:hover { background: rgba(14,165,233,.08); }
+    .seg-btn.active { background: #0ea5e9; color: #fff; }
+
+    .font-sans { font-family: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans","Segoe UI","Roboto","Helvetica Neue",sans-serif; }
+    .font-medium { font-weight: 500; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+
+    .text-sm { font-size: .875rem; }
+    .text-base { font-size: 1rem; }
+    .text-lg { font-size: 1.125rem; }
+    .text-xl { font-size: 1.25rem; }
+    .text-2xl { font-size: 1.5rem; }
+    .text-3xl { font-size: 1.875rem; }
+
+    .p-4 { padding: 1rem; }
+    .p-6 { padding: 1.5rem; }
+    .p-8 { padding: 2rem; }
+    .p-10 { padding: 2.5rem; }
+    .p-12 { padding: 3rem; }
+    .p-16 { padding: 4rem; }
+
+    .py-2\.5 { padding-top: .625rem; padding-bottom: .625rem; }
+    .py-3 { padding-top: .75rem; padding-bottom: .75rem; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+
+    .px-3 { padding-left: .75rem; padding-right: .75rem; }
+
+    .mt-1 { margin-top: .25rem; }
+    .mt-2 { margin-top: .5rem; }
+    .mb-2 { margin-bottom: .5rem; }
+    .mb-3 { margin-bottom: .75rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+
+    .gap-3 { gap: .75rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .gap-8 { gap: 2rem; }
+
+    .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: .5rem; }
+    .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
+
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .flex-1 { flex: 1 1 0%; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+
+    .w-full { width: 100%; }
+    .max-w-90vw { max-width: 90vw; }
+    .max-w-sm { max-width: 24rem; }
+    .max-w-md { max-width: 28rem; }
+    .max-w-lg { max-width: 32rem; }
+    .max-w-xl { max-width: 36rem; }
+    .max-w-screen-2xl { max-width: 1536px; }
+
+    .grid { display: grid; }
+    .grid-cols-1 { grid-template-columns: repeat(1,minmax(0,1fr)); }
+    .grid-cols-2 { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+    .hidden { display: none; }
+    .block { display: block; }
+    .rounded { border-radius: .25rem; }
+
+    .min-h-screen { min-height: 100vh; }
+    .min-h-80px  { min-height: 80px; }
+    .min-h-100px { min-height: 100px; }
+    .min-h-120px { min-height: 120px; }
+    .min-h-140px { min-height: 140px; }
+    .min-h-155px { min-height: 155px; }
+
+    .max-h-56 { max-height: 14rem; }
+    .max-h-360px { max-height: 360px; }
+    .overflow-y-auto { overflow-y: auto; }
+    .pr-1 { padding-right: .25rem; }
+
+    .disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
+
+    @media (min-width: 640px) {
+      .panel button,
+      .panel input[type=file],
+      .panel input[type=file]::file-selector-button,
+      .panel input[type=file]::-webkit-file-upload-button,
+      .panel input[type=number] { font-size: 1.075rem; }
+      [class~="sm:p-6"] { padding: 1.5rem; }
+      [class~="sm:text-base"] { font-size: 1rem; }
+      [class~="sm:py-3"] { padding-top: .75rem; padding-bottom: .75rem; }
+      [class~="sm:max-w-sm"] { max-width: 24rem; }
+    }
+
+    @media (min-width: 768px) {
+      .panel button,
+      .panel input[type=file],
+      .panel input[type=file]::file-selector-button,
+      .panel input[type=file]::-webkit-file-upload-button,
+      .panel input[type=number] { font-size: 1.15rem; }
+      [class~="md:p-8"] { padding: 2rem; }
+      [class~="md:text-lg"] { font-size: 1.125rem; }
+      [class~="md:grid"] { display: grid; }
+      [class~="md:grid-cols-2"] { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      [class~="md:gap-8"] { gap: 2rem; }
+      [class~="md:py-4"] { padding-top: 1rem; padding-bottom: 1rem; }
+      [class~="md:max-w-md"] { max-width: 28rem; }
+      [class~="md:max-h-[360px]"] { max-height: 360px; }
+    }
+
+    @media (min-width: 1024px) {
+      [class~="lg:p-10"] { padding: 2.5rem; }
+      [class~="lg:text-2xl"] { font-size: 1.5rem; }
+      [class~="lg:min-h-[140px]"] { min-height: 140px; }
+      [class~="lg:max-w-lg"] { max-width: 32rem; }
+    }
+
+    @media (min-width: 1280px) {
+      .panel button,
+      .panel input[type=file],
+      .panel input[type=file]::file-selector-button,
+      .panel input[type=file]::-webkit-file-upload-button,
+      .panel input[type=number] { font-size: 1.25rem; }
+      [class~="xl:p-12"] { padding: 3rem; }
+      [class~="xl:text-3xl"] { font-size: 1.875rem; }
+      [class~="xl:min-h-[155px]"] { min-height: 155px; }
+      [class~="xl:max-w-xl"] { max-width: 36rem; }
+    }
+
+    @media (min-width: 1536px) {
+      [class~="2xl:p-16"] { padding: 4rem; }
+      [class~="2xl:max-w-screen-2xl"] { max-width: 1536px; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center font-sans p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 2xl:p-16">
+  <main class="panel w-full max-w-[90vw] sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-screen-2xl p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 2xl:p-16">
+    <h1 class="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-6">三菱镭射程式防呆系统</h1>
+
+    <div class="flex flex-col gap-6 md:grid md:grid-cols-2 md:gap-8">
+      <section class="space-y-5 text-sm sm:text-base md:text-lg">
+        <label class="block font-medium">
+          步骤 1：选择 PRG 文件
+          <input id="file" type="file" accept=".prg" class="block w-full mt-2 text-sm sm:text-base md:text-lg">
+        </label>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="block text-sm font-medium">
+            #592=<input id="val592" type="number" step="0.001" class="mt-1 w-full px-3 rounded" disabled>
+          </label>
+          <label class="block text-sm font-medium">
+            #593=<input id="val593" type="number" step="0.001" class="mt-1 w-full px-3 rounded" disabled>
+          </label>
+        </div>
+
+        <div class="flex gap-3">
+          <button id="run" class="flex-1 py-2.5 sm:py-3 md:py-4 rounded font-semibold disabled:cursor-not-allowed" disabled>生成文件</button>
+          <button id="clearFile" type="button" class="flex-1 py-2.5 sm:py-3 md:py-4 rounded font-semibold disabled:cursor-not-allowed" disabled>清除文件</button>
+        </div>
+
+        <pre id="msg" class="min-h-[80px] sm:min-h-[100px] md:min-h-[120px] lg:min-h-[140px] xl:min-h-[155px] rounded"></pre>
+      </section>
+
+      <section id="segmentBox" class="hidden">
+        <span class="block font-medium mb-3">步骤 2：请选择要跳过的分割刀具</span>
+        <input id="toolFilter" type="text" placeholder="筛选刀具 (如 M101)" class="block w-full mb-2 px-3 py-4 rounded text-sm sm:text-base md:text-lg" disabled>
+        <div id="segmentList" class="space-y-2 max-h-56 md:max-h-[360px] overflow-y-auto pr-1"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const toolRE=/\bM1(?:0[1-9]|[1-4][0-9]|50)\b/i
+    const m9xRE=/M9\d+/i
+    const assignRE=/^#(592|593)=(.*)$/i
+    const insertedRE=/\b(?:GOTO1000|N1000)\b/i
+    const isComment=l=>{const t=l.trim();return t.startsWith('(')||t.startsWith(';')}
+
+    const f=document.getElementById('file')
+    const clearBtn=document.getElementById('clearFile')
+    const segBox=document.getElementById('segmentBox')
+    const segList=document.getElementById('segmentList')
+    const runBtn=document.getElementById('run')
+    const msg=document.getElementById('msg')
+    const v592=document.getElementById('val592')
+    const v593=document.getElementById('val593')
+    const toolFilter=document.getElementById('toolFilter')
+
+    let raw='',fname='output.prg',hideAll=false
+
+    const renderSegmentButtons=()=>{
+      let count=0
+      document.querySelectorAll('.seg-btn').forEach(btn=>{
+        if(!btn.classList.contains('hidden')){
+          count++
+          btn.textContent=`${count} 分割刀具 ${btn.dataset.tool}`
+        }
+      })
+    }
+
+    const reset=()=>{
+      raw=''
+      fname='output.prg'
+      msg.textContent=''
+      segBox.classList.add('hidden')
+      segList.innerHTML=''
+      runBtn.disabled=true
+      clearBtn.disabled=true
+      toolFilter.value=''
+      toolFilter.disabled=true
+      hideAll=false
+      ;[v592,v593].forEach(i=>{i.disabled=true;i.value=''})
+    }
+
+    f.addEventListener('change',async()=>{
+      reset()
+      if(!f.files.length) return
+      clearBtn.disabled=false
+      const file=f.files[0]
+      if(!file.name.toLowerCase().endsWith('.prg')){
+        msg.textContent='⚠ 只接受 PRG 格式文件'
+        return
+      }
+      fname=file.name
+      const text=await file.text()
+      const lines=text.split(/\r?\n/).filter(l=>!insertedRE.test(l))
+      raw=lines.join('\r\n')
+      const idx=[],tools=[]
+      lines.forEach((l,i)=>{
+        if(!isComment(l)){
+          const m=l.match(toolRE)
+          if(m){idx.push(i);tools.push(m[0].toUpperCase())}
+        }
+        const a=assignRE.exec(l.trim())
+        if(a){
+          const n=Number(a[2])
+          if(!isNaN(n)){
+            if(a[1]==='592'){v592.value=n;v592.disabled=false}
+            if(a[1]==='593'){v593.value=n;v593.disabled=false}
+          }
+        }
+      })
+      if(idx.length>=2){
+        idx.slice(0,-1).forEach((st,i)=>{
+          const ed=idx[i+1]
+          const btn=document.createElement('button')
+          btn.type='button'
+          btn.className='seg-btn'
+          btn.dataset.s=i
+          btn.dataset.tool=tools[i]
+          btn.dataset.range=`${st+1}-${ed+1}`
+          btn.onclick=()=>{
+            document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
+            btn.classList.add('active')
+          }
+          segList.appendChild(btn)
+        })
+        segBox.classList.remove('hidden')
+        toolFilter.disabled=false
+        renderSegmentButtons()
+      }
+      runBtn.disabled=false
+      msg.textContent=`已完成自动识别 ${idx.length-1} 分割刀具`
+    })
+
+    clearBtn.addEventListener('click',()=>{ f.value=''; reset() })
+
+    runBtn.addEventListener('click',()=>{
+      const sel=new Set([...document.querySelectorAll('.seg-btn.active:not(.hidden)')].map(b=>b.dataset.s))
+      const out=updateVars(process(raw,sel))
+      const a=document.createElement('a')
+      a.href=URL.createObjectURL(new Blob([out],{type:'text/plain'}))
+      a.download=fname
+      a.click()
+      URL.revokeObjectURL(a.href)
+      msg.textContent='已下载 '+fname
+    })
+
+    toolFilter.addEventListener('input',()=>{
+      const val=toolFilter.value.trim().toUpperCase()
+      if(val==='*'){
+        hideAll=!hideAll
+        document.querySelectorAll('.seg-btn').forEach(b=>{
+          hideAll?b.classList.add('hidden'):b.classList.remove('hidden')
+          if(hideAll) b.classList.remove('active')
+        })
+        toolFilter.value=''
+        renderSegmentButtons()
+        return
+      }
+      document.querySelectorAll('.seg-btn').forEach(btn=>{
+        btn.textContent.toUpperCase().includes(val)
+          ?btn.classList.remove('hidden')
+          :btn.classList.add('hidden')
+      })
+      renderSegmentButtons()
+    })
+
+    const process=(text,set)=>{
+      if(!set.size) return text
+      const lines=text.split(/\r?\n/),idx=[]
+      lines.forEach((l,i)=>{!isComment(l)&&toolRE.test(l)&&idx.push(i)})
+      let off=0
+      for(let s=0;s<idx.length-1;s++){
+        if(!set.has(String(s))) continue
+        let st=idx[s]+off,ed=idx[s+1]+off,g90=-1
+        for(let i=st-1;i>=0;i--){
+          if(isComment(lines[i])) continue
+          if(/\bG90\b/i.test(lines[i])){g90=i;break}
+        }
+        if(g90!==-1){
+          lines.splice(g90+1,0,'GOTO1000');off++
+          if(g90<st){st++;ed++}
+        }
+        lines.splice(ed,0,'N1000')
+        const nIdx=ed
+        off++
+        ed++
+        let tok=null
+        for(let i=g90+1;i<nIdx;i++){
+          if(isComment(lines[i])) continue
+          const m=lines[i].match(m9xRE);if(m) tok=m[0]
+        }
+        if(tok){lines.splice(nIdx+1,0,tok);off++}
+      }
+      return lines.join('\r\n')
+    }
+
+    const updateVars=text=>{
+      return text.split(/\r?\n/).map(l=>{
+        const m=assignRE.exec(l.trim())
+        if(!m) return l
+        if(m[1]==='592'&&!v592.disabled) return `#592=${parseFloat(v592.value).toFixed(3)}`
+        if(m[1]==='593'&&!v593.disabled) return `#593=${parseFloat(v593.value).toFixed(3)}`
+        return l
+      }).join('\r\n')
+    }
+  </script>
+</body>
+</html>
