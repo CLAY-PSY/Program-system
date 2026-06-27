@@ -381,11 +381,19 @@ SOFTWARE.
       const lines=text.split(/\r?\n/).filter(l=>!insertedRE.test(l))
       raw=lines.join('\r\n')
       const idx=[],tools=[]
+        let burnAdded=false
+        let foundG90=false
       lines.forEach((l,i)=>{
         if(!isComment(l)){
-          const m=l.match(toolRE)
-          if(m){idx.push(i);tools.push(m[0].toUpperCase())}
+        if(/\bG90\b/i.test(l)){
+            foundG90=true
         }
+        const m=l.match(toolRE)
+        if(m){
+            idx.push(i)
+            tools.push(m[0].toUpperCase())
+        }
+     }
         const a=assignRE.exec(l.trim())
         if(a){
           const n=Number(a[2])
@@ -398,16 +406,14 @@ SOFTWARE.
      if(idx.length>=2){
      idx.slice(0,-1).forEach((st,i)=>{
      const ed=idx[i+1]
-     let hasKey=false
-     for(let j=st;j<ed;j++){
-      if(isComment(lines[j])) continue
-      if(keyRE.test(lines[j].trim())){
-        hasKey=true
-        break
-      }
-    }
-    if(!hasKey) return
-
+     if(foundG90 && !burnAdded)
+     {burnAdded=true}
+     else{
+        let hasKey=false
+        for(let j=st;j<ed;j++){
+        if(isComment(lines[j])) continue
+        if(keyRE.test(lines[j])){hasKey=true break}}
+        if(!hasKey) return}
     const btn=document.createElement('button')
     btn.type='button'
     btn.className='seg-btn'
