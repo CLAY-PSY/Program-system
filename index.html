@@ -327,6 +327,7 @@ SOFTWARE.
     const toolRE=/\bM1(?:0[1-9]|[1-4][0-9]|50)\b/i
     const m9xRE=/M9\d+/i
     const assignRE=/^#(592|593)=(.*)$/i
+    const keyRE=/^#218\d+\s*=/i
     const insertedRE=/\b(?:GOTO1000|N1000)\b/i
     const isComment=l=>{const t=l.trim();return t.startsWith('(')||t.startsWith(';')}
 
@@ -394,25 +395,40 @@ SOFTWARE.
           }
         }
       })
-      if(idx.length>=2){
-        idx.slice(0,-1).forEach((st,i)=>{
-          const ed=idx[i+1]
-          const btn=document.createElement('button')
-          btn.type='button'
-          btn.className='seg-btn'
-          btn.dataset.s=i
-          btn.dataset.tool=tools[i]
-          btn.dataset.range=`${st+1}-${ed+1}`
-          btn.onclick=()=>{
-            document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
-            btn.classList.add('active')
-          }
-          segList.appendChild(btn)
-        })
-        segBox.classList.remove('hidden')
-        toolFilter.disabled=false
-        renderSegmentButtons()
+     if(idx.length>=2){
+     idx.slice(0,-1).forEach((st,i)=>{
+     const ed=idx[i+1]
+     let hasKey=false
+     for(let j=st;j<ed;j++){
+      if(isComment(lines[j])) continue
+      if(keyRE.test(lines[j].trim())){
+        hasKey=true
+        break
       }
+    }
+    if(!hasKey) return
+
+    const btn=document.createElement('button')
+    btn.type='button'
+    btn.className='seg-btn'
+    btn.dataset.s=i
+    btn.dataset.tool=tools[i]
+    btn.dataset.range=`${st+1}-${ed+1}`
+
+    btn.onclick=()=>{
+      document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
+      btn.classList.add('active')
+    }
+
+    segList.appendChild(btn)
+    })
+
+    if(segList.children.length){
+    segBox.classList.remove('hidden')
+    toolFilter.disabled=false
+    renderSegmentButtons()
+    }
+    }
       runBtn.disabled=false
       msg.textContent=`已完成自动识别 ${idx.length-1} 分割刀具`
     })
