@@ -330,7 +330,6 @@ SOFTWARE.
     const keyRE=/#218\d+\s*=/i
     const insertedRE=/\b(?:GOTO1000|N1000)\b/i
     const isComment=l=>{const t=l.trim();return t.startsWith('(')||t.startsWith(';')}
-
     const f=document.getElementById('file')
     const clearBtn=document.getElementById('clearFile')
     const segBox=document.getElementById('segmentBox')
@@ -340,9 +339,7 @@ SOFTWARE.
     const v592=document.getElementById('val592')
     const v593=document.getElementById('val593')
     const toolFilter=document.getElementById('toolFilter')
-
     let raw='',fname='output.prg',hideAll=false
-
     const renderSegmentButtons=()=>{
       let count=0
       document.querySelectorAll('.seg-btn').forEach(btn=>{
@@ -352,7 +349,6 @@ SOFTWARE.
         }
       })
     }
-
     const reset=()=>{
       raw=''
       fname='output.prg'
@@ -366,7 +362,6 @@ SOFTWARE.
       hideAll=false
       ;[v592,v593].forEach(i=>{i.disabled=true;i.value=''})
     }
-
     f.addEventListener('change',async()=>{
       reset()
       if(!f.files.length) return
@@ -382,11 +377,9 @@ SOFTWARE.
       raw=lines.join('\r\n')
       const idx=[],tools=[],burn=[]
         let waitBurn=false
-        let burnAdded=false
-        let foundG90=false
-lines.forEach((l,i)=>{
+      lines.forEach((l,i)=>{
 
-    if(!isComment(l)){
+        if(!isComment(l)){
 
         if(/\bG90\b/i.test(l)){
             waitBurn=true
@@ -428,34 +421,63 @@ lines.forEach((l,i)=>{
     }
 
 })
-    if(idx.length>=2){
-    idx.slice(0,-1).forEach((st,i)=>{
-        const ed=idx[i+1]
-        if(!burn[i]){
-        let hasKey=false
-        for(let j=st;j<ed;j++){
-        if(isComment(lines[j])) continue
-        if(keyRE.test(lines[j])){
-    hasKey=true break}}
-        if(!hasKey) return}
+    if(idx.length){
+
+    idx.forEach((st,i)=>{
+
+        const ed=i+1<idx.length?idx[i+1]:lines.length
+
+        let show=burn[i]
+
+        if(!show){
+
+            for(let j=st;j<ed;j++){
+
+                if(isComment(lines[j])) continue
+
+                if(keyRE.test(lines[j].trim())){
+                    show=true
+                    break
+                }
+
+            }
+
+        }
+
+        if(!show) return
+
         const btn=document.createElement('button')
+
         btn.type='button'
         btn.className='seg-btn'
+
         btn.dataset.s=i
         btn.dataset.tool=tools[i]
-        btn.dataset.range=`${st+1}-${ed+1}`
+        btn.dataset.range=`${st+1}-${ed}`
+
         btn.onclick=()=>{
+
             document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
+
             btn.classList.add('active')
+
         }
+
         segList.appendChild(btn)
+
     })
+
     if(segList.children.length){
+
         segBox.classList.remove('hidden')
+
         toolFilter.disabled=false
+
         renderSegmentButtons()
+
     }
-}
+
+  }
       runBtn.disabled=false
       msg.textContent=`已完成自动识别 ${segList.children.length} 分割刀具`
     })
