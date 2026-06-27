@@ -380,67 +380,86 @@ SOFTWARE.
       const text=await file.text()
       const lines=text.split(/\r?\n/).filter(l=>!insertedRE.test(l))
       raw=lines.join('\r\n')
-      const idx=[],tools=[]
+      const idx=[],tools=[],burn=[]
+        let waitBurn=false
         let burnAdded=false
         let foundG90=false
-      lines.forEach((l,i)=>{
-        if(!isComment(l)){
+lines.forEach((l,i)=>{
+
+    if(!isComment(l)){
+
         if(/\bG90\b/i.test(l)){
-            foundG90=true
+            waitBurn=true
         }
+
         const m=l.match(toolRE)
+
         if(m){
+
             idx.push(i)
             tools.push(m[0].toUpperCase())
+
+            burn.push(waitBurn)
+
+            waitBurn=false
         }
-     }
-        const a=assignRE.exec(l.trim())
-        if(a){
-          const n=Number(a[2])
-          if(!isNaN(n)){
-            if(a[1]==='592'){v592.value=n;v592.disabled=false}
-            if(a[1]==='593'){v593.value=n;v593.disabled=false}
-          }
+    }
+
+    const a=assignRE.exec(l.trim())
+
+    if(a){
+
+        const n=Number(a[2])
+
+        if(!isNaN(n)){
+
+            if(a[1]==='592'){
+                v592.value=n
+                v592.disabled=false
+            }
+
+            if(a[1]==='593'){
+                v593.value=n
+                v593.disabled=false
+            }
+
         }
-      })
-     if(idx.length>=2){
-     idx.slice(0,-1).forEach((st,i)=>{
-     const ed=idx[i+1]
-     if(foundG90 && !burnAdded)
-     {burnAdded=true}
-     else{
+
+    }
+
+})
+    if(idx.length>=2){
+    idx.slice(0,-1).forEach((st,i)=>{
+        const ed=idx[i+1]
+        if(!burn[i]){
         let hasKey=false
         for(let j=st;j<ed;j++){
         if(isComment(lines[j])) continue
-        if(keyRE.test(lines[j])){hasKey=true break}}
+        if(keyRE.test(lines[j])){
+    hasKey=true break}}
         if(!hasKey) return}
-    const btn=document.createElement('button')
-    btn.type='button'
-    btn.className='seg-btn'
-    btn.dataset.s=i
-    btn.dataset.tool=tools[i]
-    btn.dataset.range=`${st+1}-${ed+1}`
-
-    btn.onclick=()=>{
-      document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
-      btn.classList.add('active')
-    }
-
-    segList.appendChild(btn)
+        const btn=document.createElement('button')
+        btn.type='button'
+        btn.className='seg-btn'
+        btn.dataset.s=i
+        btn.dataset.tool=tools[i]
+        btn.dataset.range=`${st+1}-${ed+1}`
+        btn.onclick=()=>{
+            document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
+            btn.classList.add('active')
+        }
+        segList.appendChild(btn)
     })
-
     if(segList.children.length){
-    segBox.classList.remove('hidden')
-    toolFilter.disabled=false
-    renderSegmentButtons()
+        segBox.classList.remove('hidden')
+        toolFilter.disabled=false
+        renderSegmentButtons()
     }
-    }
+}
       runBtn.disabled=false
       msg.textContent=`已完成自动识别 ${segList.children.length} 分割刀具`
     })
-
     clearBtn.addEventListener('click',()=>{ f.value=''; reset() })
-
     runBtn.addEventListener('click',()=>{
       const sel=new Set([...document.querySelectorAll('.seg-btn.active:not(.hidden)')].map(b=>b.dataset.s))
       const out=updateVars(process(raw,sel))
@@ -451,7 +470,6 @@ SOFTWARE.
       URL.revokeObjectURL(a.href)
       msg.textContent='已下载 '+fname
     })
-
     toolFilter.addEventListener('input',()=>{
       const val=toolFilter.value.trim().toUpperCase()
       if(val==='*'){
@@ -471,7 +489,6 @@ SOFTWARE.
       })
       renderSegmentButtons()
     })
-
     const process=(text,set)=>{
       if(!set.size) return text
       const lines=text.split(/\r?\n/),idx=[]
@@ -501,7 +518,6 @@ SOFTWARE.
       }
       return lines.join('\r\n')
     }
-
     const updateVars=text=>{
       return text.split(/\r?\n/).map(l=>{
         const m=assignRE.exec(l.trim())
