@@ -303,11 +303,10 @@ SOFTWARE.
     const toolFilter=document.getElementById('toolFilter')
     let raw='',fname='output.prg',hideAll=false
     const renderSegmentButtons=()=>{
-      let count=0
       document.querySelectorAll('.seg-btn').forEach(btn=>{
         if(!btn.classList.contains('hidden')){
-          count++
-          btn.textContent=`${count} 分割刀具 ${btn.dataset.tool}`
+          btn.textContent=
+            `${btn.dataset.fg} 分割刀具 ${btn.dataset.tool}`
         }
       })
     }
@@ -385,6 +384,7 @@ SOFTWARE.
         btn.type='button'
         btn.className='seg-btn'
         btn.dataset.s=i
+        btn.dataset.fg=i+1
         btn.dataset.tool=tools[i]
         btn.dataset.range=`${st+1}-${ed}`
         btn.dataset.fg = segList.children.length + 1
