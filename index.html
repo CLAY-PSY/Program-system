@@ -258,7 +258,7 @@ SOFTWARE.
       [class~="2xl:p-16"] { padding: 4rem; }
       [class~="2xl:max-w-screen-2xl"] { max-width: 1536px; }
     }
-  </style>
+</style>
 </head>
 <body class="min-h-screen flex items-center justify-center font-sans p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 2xl:p-16">
   <main class="panel w-full max-w-[90vw] sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-screen-2xl p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12 2xl:p-16">
@@ -337,7 +337,7 @@ SOFTWARE.
       clearBtn.disabled=false
       const file=f.files[0]
       if(!file.name.toLowerCase().endsWith('.prg')){
-        msg.textContent='⚠ 请选择 PRG 格式文件'
+        msg.textContent='请选择 PRG 格式文件！'
         return
       }
       fname=file.name
@@ -429,7 +429,7 @@ SOFTWARE.
       }
     }
       runBtn.disabled=false
-      msg.textContent=`已扫描${segList.children.length}分割刀具`
+      msg.textContent=`已扫描 ${segList.children.length} 分割刀具`
     })
     clearBtn.addEventListener('click',()=>{ f.value=''; reset() })
     runBtn.addEventListener('click',()=>{
@@ -439,7 +439,7 @@ SOFTWARE.
     .map(b=>b.dataset.s)
     )
     if(active && active.dataset.last==="true"){
-    msg.textContent="⚠ 最后一个分割刀具禁止生成文件！"
+    msg.textContent="最后结束点禁止生成文件！"
     return
     }
     const out=updateVars(process(raw,sel))
@@ -526,6 +526,6 @@ SOFTWARE.
         return l
       }).join('\r\n')
     }
-  </script>
+</script>
 </body>
 </html>
