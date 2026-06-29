@@ -151,6 +151,7 @@ SOFTWARE.
     }
     .seg-btn:hover { background: rgba(14,165,233,.08); }
     .seg-btn.active { background: #0ea5e9; color: #fff; }
+    .seg-btn.disabled{opacity:.45;cursor:not-allowed;pointer-events:none;}
     .font-sans { font-family: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans","Segoe UI","Roboto","Helvetica Neue",sans-serif; }
     .font-medium { font-weight: 500; }
     .font-semibold { font-weight: 600; }
@@ -391,23 +392,27 @@ SOFTWARE.
         btn.dataset.s=i
         btn.dataset.fg=i+1
         btn.dataset.tool=tools[i]
+        btn.dataset.last = (i === idx.length - 1)
         btn.dataset.range=`${st+1}-${ed}`
-        btn.dataset.fg = segList.children.length + 1
+        btn.dataset.last=(i===idx.length-1)
+        if(btn.dataset.last==="true"){
+        btn.classList.add("disabled")
+    }
         btn.onclick=()=>{
-            document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
-            btn.classList.add('active')
-        }
+        if(btn.dataset.last==="true"){
+        return
+    }
+        document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
+        btn.classList.add('active')
+    }
+
         segList.appendChild(btn)
-    })
-    if(segList.children.length){
-
+        })
+        if(segList.children.length){
         segBox.classList.remove('hidden')
-
         toolFilter.disabled=false
-
         renderSegmentButtons()
-
-        }
+      }
     }
       runBtn.disabled=false
       msg.textContent=`已完成自动识别 ${segList.children.length} 分割刀具`
