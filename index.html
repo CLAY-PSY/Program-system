@@ -312,11 +312,12 @@ SOFTWARE.
     document.querySelectorAll('.seg-btn').forEach(btn=>{
         if(btn.classList.contains('hidden')) return
         if(btn.dataset.burn==="true"){
-        btn.textContent=`烧靶刀具 ${btn.dataset.tool}`
-        }else{
-            btn.textContent=`${btn.dataset.fg} 分割刀具 ${btn.dataset.tool}`
-         }
-      })
+            btn.textContent=` 烧靶刀具 ${btn.dataset.tool}`
+            }else{
+            btn.textContent=
+            `${btn.dataset.fg} 分割刀具 ${btn.dataset.tool}`
+            }
+        })
     }
     const reset=()=>{
       raw=''
@@ -345,22 +346,35 @@ SOFTWARE.
       const lines=text.split(/\r?\n/).filter(l=>!insertedRE.test(l))
       raw=lines.join('\r\n')
       const idx=[],tools=[],burn=[]
-        let waitBurn=false
+      let waitBurn=false
+
       lines.forEach((l,i)=>{
-        if(!isComment(l)){
-        if(/\bG90\b/i.test(l)){
-            waitBurn=true
+      if(isComment(l)) return
+      if(/\bG90\b/i.test(l)){
+      waitBurn=true
+      return
+      }
+      const m=l.match(toolRE)
+      if(!m) return
+      idx.push(i)
+      tools.push(m[0].toUpperCase())
+      let isBurn=false
+      if(waitBurn){
+        let hasKey=false
+        for(let j=i+1;j<lines.length;j++){
+            if(isComment(lines[j])) continue
+            if(toolRE.test(lines[j])) break
+            if(keyRE.test(lines[j].trim())){
+                hasKey=true
+                break
+            }
         }
-        const m=l.match(toolRE)
-        if(m){
-            idx.push(i)
-            tools.push(m[0].toUpperCase())
-            burn.push(waitBurn)
-            waitBurn=false
-        }
-    }
-    const a=assignRE.exec(l.trim())
-    if(a){
+        isBurn=!hasKey
+        waitBurn=false
+      }
+        burn.push(isBurn)
+        const a=assignRE.exec(l.trim())
+        if(a){
         const n=Number(a[2])
         if(!isNaN(n)){
             if(a[1]==='592'){
@@ -371,49 +385,50 @@ SOFTWARE.
                 v593.value=n
                 v593.disabled=false
             }
+          }
         }
-            }
-        })
-      if(idx.length){
-      let fgCount=0
-      idx.forEach((st,i)=>{
-        const ed=i+1<idx.length?idx[i+1]:lines.length
+      })
+        if(idx.length){
+        let fgCount=0
+        idx.forEach((st,i)=>{
+        const ed=i+1<idx.length ? idx[i+1] : lines.length
         let show=burn[i]
         if(!show){
             for(let j=st;j<ed;j++){
-                if(isComment(lines[j])) continue
-                if(keyRE.test(lines[j].trim())){
-                    show=true
-                    break
+            if(isComment(lines[j])) continue
+            if(keyRE.test(lines[j].trim())){
+            show=true
+            break
                 }
             }
         }
         if(!show) return
-        if(!burn[i]){fgCount++}
+        if(!burn[i]){
+            fgCount++
+        }
         const btn=document.createElement('button')
         btn.type='button'
         btn.className='seg-btn'
         btn.dataset.s=i
         btn.dataset.tool=tools[i]
-        btn.dataset.last = (i === idx.length - 1)
         btn.dataset.range=`${st+1}-${ed}`
         btn.dataset.burn=burn[i] ? "true" : "false"
-        btn.dataset.fg = burn[i] ? "" : fgCount
-        btn.dataset.last=(i===idx.length-1)
+        btn.dataset.fg=burn[i] ? "" : fgCount
+        btn.dataset.last=(i===idx.length-1) ? "true" : "false"
         if(btn.dataset.last==="true"){
-        btn.classList.add("disabled")
-    }
+            btn.classList.add("disabled")
+        }
         btn.onclick=()=>{
-        if(btn.dataset.last==="true"){
-        return
-    }
-        document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'))
-        btn.classList.add('active')
-    }
-
+            if(btn.dataset.last==="true"){
+            return
+            }
+            document.querySelectorAll('.seg-btn')
+            .forEach(b=>b.classList.remove('active'))
+            btn.classList.add('active')
+        }
         segList.appendChild(btn)
-        })
-        if(segList.children.length){
+    })
+      if(segList.children.length){
         segBox.classList.remove('hidden')
         toolFilter.disabled=false
         renderSegmentButtons()
@@ -424,36 +439,42 @@ SOFTWARE.
     })
     clearBtn.addEventListener('click',()=>{ f.value=''; reset() })
     runBtn.addEventListener('click',()=>{
-      const active=document.querySelector('.seg-btn.active')
-      const fgNo=active ? active.dataset.fg : "0"
-      const toolName=active ? active.dataset.tool : "UNKNOWN"
-      const sel=new Set(
-            [...document.querySelectorAll('.seg-btn.active:not(.hidden)')]
-            .map(b=>b.dataset.s)
-     )
-      const out=updateVars(process(raw,sel))
-      const a=document.createElement('a')
-      a.href=URL.createObjectURL(new Blob([out],{type:'text/plain'}))
-            if(active){
-            const dot=fname.lastIndexOf('.')
-            if(active.dataset.burn==="true"){
-            a.download=
-            dot>0
-            ?`${fname.substring(0,dot)}_ZSB_${toolName}${fname.substring(dot)}`
-            :`${fname}_ZSB_${toolName}`
-            }else{
-            a.download=
-            dot>0
-            ?`${fname.substring(0,dot)}_${fgNo}FG_${toolName}${fname.substring(dot)}`
-            :`${fname}_${fgNo}FG_${toolName}`
-          }
+    const active=document.querySelector('.seg-btn.active')
+    const sel=new Set(
+    [...document.querySelectorAll('.seg-btn.active:not(.hidden)')]
+    .map(b=>b.dataset.s)
+    )
+    if(active && active.dataset.last==="true"){
+    msg.textContent="⚠ 最后一个分割刀具禁止生成文件！"
+    return
+    }
+    const out=updateVars(process(raw,sel))
+    const a=document.createElement('a')
+    a.href=URL.createObjectURL(
+        new Blob([out],{type:'text/plain'})
+    )
+    if(!active){
+        a.download=fname
+        }else{
+        const dot=fname.lastIndexOf('.')
+        const toolName=active.dataset.tool
+        if(active.dataset.burn==="true"){
+          a.download=
+          dot>0
+          ?`${fname.substring(0,dot)}_ZSB_${toolName}${fname.substring(dot)}`
+          :`${fname}_ZSB_${toolName}`
           }else{
-            a.download=fname
-          }
-          a.click()
-          URL.revokeObjectURL(a.href)
-          msg.textContent='已下载 '+a.download
-      })
+          const fgNo=active.dataset.fg
+          a.download=
+          dot>0
+          ?`${fname.substring(0,dot)}_${fgNo}FG_${toolName}${fname.substring(dot)}`
+          :`${fname}_${fgNo}FG_${toolName}`
+        }
+    }
+    a.click()
+    URL.revokeObjectURL(a.href)
+    msg.textContent=`已生成：${a.download}`
+    })
     toolFilter.addEventListener('input',()=>{
       const val=toolFilter.value.trim().toUpperCase()
       if(val==='*'){
