@@ -347,8 +347,20 @@ SOFTWARE.
       raw=lines.join('\r\n')
       const idx=[],tools=[],burn=[]
       let waitBurn=false
-
       lines.forEach((l,i)=>{
+      const a=assignRE.exec(l.trim())
+      if(a){
+      const n=Number(a[2])
+      if(!isNaN(n)){
+        if(a[1]==='592'){
+        v592.value=n
+        v592.disabled=false}
+        if(a[1]==='593'){
+        v593.value=n
+        v593.disabled=false
+          }
+        }
+      }
       if(isComment(l)) return
       if(/\bG90\b/i.test(l)){
       waitBurn=true
@@ -373,20 +385,6 @@ SOFTWARE.
         waitBurn=false
       }
         burn.push(isBurn)
-        const a=assignRE.exec(l.trim())
-        if(a){
-        const n=Number(a[2])
-        if(!isNaN(n)){
-            if(a[1]==='592'){
-                v592.value=n
-                v592.disabled=false
-            }
-            if(a[1]==='593'){
-                v593.value=n
-                v593.disabled=false
-            }
-          }
-        }
       })
         if(idx.length){
         let fgCount=0
