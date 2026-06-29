@@ -424,11 +424,15 @@ SOFTWARE.
       const out=updateVars(process(raw,sel))
       const a=document.createElement('a')
       a.href=URL.createObjectURL(new Blob([out],{type:'text/plain'}))
+      if(active){
       const dot=fname.lastIndexOf('.')
       a.download=
-        dot>0
-          ?`${fname.substring(0,dot)}_${fgNo}FG_${toolName}${fname.substring(dot)}`
-          :`${fname}_${fgNo}FG_${toolName}`
+      dot>0
+      ?`${fname.substring(0,dot)}_${fgNo}FG_${toolName}${fname.substring(dot)}`
+        :`${fname}_${fgNo}FG_${toolName}`
+        }else{
+        a.download=fname
+      }
           a.click()
           URL.revokeObjectURL(a.href)
           msg.textContent='已下载 '+a.download
