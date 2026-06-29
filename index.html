@@ -309,11 +309,13 @@ SOFTWARE.
     const toolFilter=document.getElementById('toolFilter')
     let raw='',fname='output.prg',hideAll=false
     const renderSegmentButtons=()=>{
-      document.querySelectorAll('.seg-btn').forEach(btn=>{
-        if(!btn.classList.contains('hidden')){
-          btn.textContent=
-            `${btn.dataset.fg} 分割刀具 ${btn.dataset.tool}`
-        }
+    document.querySelectorAll('.seg-btn').forEach(btn=>{
+        if(btn.classList.contains('hidden')) return
+        if(btn.dataset.burn==="true"){
+        btn.textContent=`烧靶刀具 ${btn.dataset.tool}`
+        }else{
+            btn.textContent=`${btn.dataset.fg} 分割刀具 ${btn.dataset.tool}`
+         }
       })
     }
     const reset=()=>{
